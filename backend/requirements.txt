@@ -6,3 +6,4 @@ pypdf
 python-pptx
 python-dotenv
 requests
+streamlit

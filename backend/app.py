@@ -1,0 +1,112 @@
+import streamlit as st
+import asyncio
+import os
+import base64
+
+from paper_generator import generate_sections, generate_latex
+from utils import extract_text_from_pdf, extract_text_from_pptx, clean_input, latex_escape
+from compile_utils import compile_latex_to_pdf
+
+st.set_page_config(page_title="ResearchPilot | AI Paper Generator", layout="wide")
+
+st.title("ResearchPilot | AI Paper Generator")
+st.markdown("### Automated Academic Research Paper Generator")
+st.markdown("Provide the core details of your research, and our AI will generate a structured academic paper for you in double-column LaTeX format.")
+st.divider()
+
+with st.container():
+    st.markdown("#### Research Inputs")
+    col1, col2 = st.columns(2)
+    with col1:
+        title = st.text_input("Paper Title", placeholder="e.g., The Impact of Quantum Computing on Cryptography")
+    with col2:
+        author = st.text_input("Author Name", placeholder="Optional", value="ResearchPilot AI Assistant")
+        
+    method = st.text_area("Methodology", height=150, placeholder="Describe your research methods, logic, and techniques...")
+    results = st.text_area("Key Results", height=150, placeholder="Summarize your data and findings...")
+    code = st.text_area("Optional Code/Snippet", height=100, placeholder="Paste your core algorithm or GitHub repository link...")
+    files = st.file_uploader("Upload PDFs/PPTXs (Background Data)", accept_multiple_files=True, type=['pdf', 'pptx'])
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns([1, 2, 1])
+    with c2:
+        generate_btn = st.button("Generate Paper", type="primary", use_container_width=True)
+st.divider()
+
+if generate_btn:
+    if not title or not method or not results:
+        st.error("Please fill in the required fields: Title, Methodology, and Key Results.")
+    else:
+        with st.spinner("Analyzing inputs and processing files..."):
+            file_content = ""
+            if files:
+                for f in files:
+                    content = f.read()
+                    filename = f.name.lower()
+                    extracted = ""
+                    if filename.endswith(".pdf"):
+                        extracted = extract_text_from_pdf(content)
+                    elif filename.endswith(".pptx") or filename.endswith(".ppt"):
+                        extracted = extract_text_from_pptx(content)
+                    else:
+                        try:
+                            extracted = content.decode("utf-8")
+                        except:
+                            extracted = "Filename: " + filename
+                    
+                    if extracted and not extracted.startswith("Error"):
+                        file_content += f"\n--- {f.name} ---\n{extracted}\n"
+            
+            clean_t = clean_input(title)
+            clean_m = clean_input(method)
+            clean_r = clean_input(results)
+            clean_c = clean_input(code or "")
+
+        with st.spinner("Generating research paper sections using AI... (This may take a minute or two)"):
+            sections = asyncio.run(generate_sections(
+                title=clean_t,
+                method=clean_m,
+                results=clean_r,
+                code_info=clean_c,
+                file_info=file_content
+            ))
+            
+            if "error" in sections:
+                st.error(f"Error: {sections['error']}")
+            else:
+                escaped_sections = {k: latex_escape(v) for k, v in sections.items()}
+                latex_code = generate_latex(latex_escape(clean_t), author, escaped_sections)
+                
+                st.session_state['sections'] = sections
+                st.session_state['latex_code'] = latex_code
+                st.success("Paper generated successfully!")
+
+if 'sections' in st.session_state and 'latex_code' in st.session_state:
+    st.header("Generated Paper Preview")
+    
+    tab1, tab2, tab3 = st.tabs(["PDF Preview", "LaTeX Source", "Section Preview"])
+    
+    with tab1:
+        if st.button("Compile & Preview PDF"):
+            with st.spinner("Compiling LaTeX to PDF..."):
+                try:
+                    pdf_bytes = compile_latex_to_pdf(st.session_state['latex_code'])
+                    st.session_state['pdf_bytes'] = pdf_bytes
+                except Exception as e:
+                    st.error(f"PDF Compilation Error: {e}")
+        
+        if 'pdf_bytes' in st.session_state:
+            b64_pdf = base64.b64encode(st.session_state['pdf_bytes']).decode('utf-8')
+            pdf_display = f'<iframe src="data:application/pdf;base64,{b64_pdf}" width="100%" height="800px" type="application/pdf"></iframe>'
+            st.markdown(pdf_display, unsafe_allow_html=True)
+            st.download_button("Download PDF", data=st.session_state['pdf_bytes'], file_name="research_paper.pdf", mime="application/pdf")
+            
+    with tab2:
+        st.code(st.session_state['latex_code'], language='latex')
+        st.download_button("Download .tex", data=st.session_state['latex_code'], file_name="research_paper.tex", mime="text/plain")
+        
+    with tab3:
+        for key, value in st.session_state['sections'].items():
+            if key != 'error':
+                st.subheader(key.replace('_', ' ').title())
+                st.write(value)
