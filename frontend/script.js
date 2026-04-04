@@ -10,6 +10,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const pdfLoader = document.getElementById("pdf-loader");
     const pdfPreviewContainer = document.getElementById("pdf-preview-container");
     const pdfViewer = document.getElementById("pdf-viewer");
+    const fileInput = document.getElementById("file");
+    const fileText = document.getElementById("file-text");
+
+    if (fileInput && fileText) {
+        fileInput.addEventListener("change", function() {
+            if (this.files && this.files.length > 0) {
+                if (this.files.length === 1) {
+                    fileText.textContent = this.files[0].name;
+                } else {
+                    fileText.textContent = `${this.files.length} files selected`;
+                }
+            } else {
+                fileText.textContent = "Upload PDFs/PPTXs (Background Data)";
+            }
+        });
+    }
 
     const API_URL = "http://localhost:8000/generate-paper";
     const PDF_API_URL = "http://localhost:8000/generate-pdf";

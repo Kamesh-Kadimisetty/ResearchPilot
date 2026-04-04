@@ -46,10 +46,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="file" class="file-label">
-                            <span class="icon">📁</span> Upload PDF/PPT (Background Data)
+                        <label for="file" class="file-label" id="file-label">
+                            <span class="icon">📁</span> <span id="file-text">Upload PDFs/PPTXs (Background Data)</span>
                         </label>
-                        <input type="file" id="file" name="file" accept=".pdf,.pptx,.ppt">
+                        <input type="file" id="file" name="files" accept=".pdf,.pptx" multiple>
                     </div>
 
                     <button type="submit" id="generate-btn">

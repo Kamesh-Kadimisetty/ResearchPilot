@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional
+from typing import Optional, List
 import uvicorn
 from io import BytesIO
 
@@ -27,33 +27,36 @@ async def generate_paper(
     results: str = Form(...),
     code: Optional[str] = Form(None),
     author: str = Form("ResearchPilot AI Assistant"),
-    file: Optional[UploadFile] = File(None)
+    files: Optional[List[UploadFile]] = File(None)
 ):
     """
     Endpoint to generate a research paper from inputs and optional file.
     """
     file_content = ""
-    # Explicitly check if a file was actually uploaded (has a filename)
-    if file and file.filename:
-        print(f"DEBUG: Receiving file '{file.filename}'...")
-        content = await file.read()
-        filename = file.filename.lower()
-        if filename.endswith(".pdf"):
-            file_content = extract_text_from_pdf(content)
-        elif filename.endswith(".pptx") or filename.endswith(".ppt"):
-            file_content = extract_text_from_pptx(content)
-        else:
-            # Fallback for other text-based files
-            try:
-                file_content = content.decode("utf-8")
-            except:
-                file_content = "Filename: " + filename
-        
-        print(f"DEBUG: Extracted {len(file_content)} characters from document.")
-        if file_content.startswith("Error"):
-            print(f"DEBUG: Extraction failed with error: {file_content}")
+    if files:
+        for f in files:
+            if f and f.filename:
+                print(f"DEBUG: Receiving file '{f.filename}'...")
+                content = await f.read()
+                filename = f.filename.lower()
+                extracted = ""
+                if filename.endswith(".pdf"):
+                    extracted = extract_text_from_pdf(content)
+                elif filename.endswith(".pptx") or filename.endswith(".ppt"):
+                    extracted = extract_text_from_pptx(content)
+                else:
+                    try:
+                        extracted = content.decode("utf-8")
+                    except:
+                        extracted = "Filename: " + filename
+                
+                print(f"DEBUG: Extracted {len(extracted)} characters from document.")
+                if extracted.startswith("Error"):
+                    print(f"DEBUG: Extraction failed with error: {extracted}")
+                else:
+                    file_content += f"\n--- {f.filename} ---\n{extracted}\n"
     else:
-        print("DEBUG: No document uploaded or empty filename.")
+        print("DEBUG: No documents uploaded or empty filename.")
 
     # Clean the primary inputs
     clean_title = clean_input(title)
@@ -91,24 +94,29 @@ async def generate_pdf(
     results: str = Form(...),
     code: Optional[str] = Form(None),
     author: str = Form("ResearchPilot AI Assistant"),
-    file: Optional[UploadFile] = File(None)
+    files: Optional[List[UploadFile]] = File(None)
 ):
     """
     Endpoint to generate a research paper and return it as a compiled PDF.
     """
     file_content = ""
-    if file and file.filename:
-        content = await file.read()
-        filename = file.filename.lower()
-        if filename.endswith(".pdf"):
-            file_content = extract_text_from_pdf(content)
-        elif filename.endswith(".pptx") or filename.endswith(".ppt"):
-            file_content = extract_text_from_pptx(content)
-        else:
-            try:
-                file_content = content.decode("utf-8")
-            except:
-                file_content = ""
+    if files:
+        for f in files:
+            if f and f.filename:
+                content = await f.read()
+                filename = f.filename.lower()
+                extracted = ""
+                if filename.endswith(".pdf"):
+                    extracted = extract_text_from_pdf(content)
+                elif filename.endswith(".pptx") or filename.endswith(".ppt"):
+                    extracted = extract_text_from_pptx(content)
+                else:
+                    try:
+                        extracted = content.decode("utf-8")
+                    except:
+                        extracted = ""
+                if extracted and not extracted.startswith("Error"):
+                    file_content += f"\n--- {f.filename} ---\n{extracted}\n"
 
     # Clean the primary inputs
     clean_title = clean_input(title)

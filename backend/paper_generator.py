@@ -10,6 +10,14 @@ def generate_sections(title, method, results, code_info="", file_info=""):
     """
     Generate research paper sections using Groq LLM matching Arxiv structure.
     """
+    # Truncate file_info to prevent exceeding token limits (approx 30k characters)
+    if len(file_info) > 30000:
+        file_info = file_info[:30000] + "\n...[TRUNCATED]"
+        
+    file_instruction = ""
+    if file_info.strip() and not file_info.startswith("Error"):
+        file_instruction = "IMPORTANT: You MUST actively integrate and synthesize the details from 'FILE EXTRACTION' throughout the paper. Use it to enrich the Introduction, Literature Review, and Data/Methodology sections."
+
     prompt = f"""
     You are an expert academic researcher and writer. Your task is to generate a structured research paper based on the following inputs:
 
@@ -21,6 +29,7 @@ def generate_sections(title, method, results, code_info="", file_info=""):
 
     CRITICAL INSTRUCTION:
     Follow the structure and style of the paper: "Adaptive Financial Sentiment Analysis for NIFTY 50 via Instruction-Tuned LLMs, RAG and Reinforcement Learning Approaches" (Arxiv: 2512.20082).
+    {file_instruction}
     
     REQUIRED SECTIONS:
     1. ABSTRACT: A concise summary of the research (approx 150-200 words). Include a 'Keywords' list at the bottom.
