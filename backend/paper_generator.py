@@ -1,18 +1,18 @@
 import os
-from groq import Groq
+from groq import AsyncGroq
 from dotenv import load_dotenv
 
 load_dotenv()
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY"))
 
-def generate_sections(title, method, results, code_info="", file_info=""):
+async def generate_sections(title, method, results, code_info="", file_info=""):
     """
     Generate research paper sections using Groq LLM matching Arxiv structure.
     """
-    # Truncate file_info to prevent exceeding token limits (approx 30k characters)
-    if len(file_info) > 30000:
-        file_info = file_info[:30000] + "\n...[TRUNCATED]"
+    # Truncate file_info to prevent exceeding token limits (approx 12k characters)
+    if len(file_info) > 12000:
+        file_info = file_info[:12000] + "\n...[TRUNCATED]"
         
     file_instruction = ""
     if file_info.strip() and not file_info.startswith("Error"):
@@ -34,11 +34,11 @@ def generate_sections(title, method, results, code_info="", file_info=""):
     REQUIRED SECTIONS:
     1. ABSTRACT: A concise summary of the research (approx 150-200 words). Include a 'Keywords' list at the bottom.
     2. INTRODUCTION: Provide background, state the problem, and outline the contribution.
-    3. LITERATURE REVIEW: Discuss related work and identify research gaps.
-    4. DATASETS: Describe the data sources, preprocessing, and any datasets used.
-    5. METHODOLOGY: Detailed technical section covering algorithms, pipelines, or frameworks.
-    6. EVALUATION AND METRICS: Description of the experimental setup and performance indicators.
-    7. RESULTS: Analysis of findings with technical depth.
+    3. LITERATURE REVIEW: Provide a COMPREHENSIVE and EXPANSIVE discussion of related work. Compare at least 3-4 different academic approaches, identify specific research gaps, and position this work within the current landscape. (Minimum 500 words).
+    4. DATASETS: Provide a DETAILED description of data sources, feature engineering, preprocessing steps, and statistical properties of the data. Explain why these datasets were chosen. (Minimum 400 words).
+    5. METHODOLOGY: This is the CORE technical section. Provide an exhaustive explanation of algorithms, system architecture, mathematical formulations (using LaTeX notation where applicable), and specific implementation logic. Be highly technical. (Minimum 800 words).
+    6. EVALUATION AND METRICS: Describe a RIGOROUS experimental setup. Define multiple performance indicators (e.g., Accuracy, F1-score, MSE, Latency) and explain the validation strategy (e.g., K-fold cross-validation). (Minimum 400 words).
+    7. RESULTS: Analysis of findings with technical depth and data-driven insights.
     8. CONCLUSION: Summary of contributions and future directions.
 
     Format the output as a dictionary-like structure where each section is clearly labeled:
@@ -50,14 +50,16 @@ def generate_sections(title, method, results, code_info="", file_info=""):
     [EVALUATION AND METRICS] ...
     [RESULTS] ...
     [CONCLUSION] ...
+
+    IMPORTANT: Aim for a high word count and professional academic tone. Do not be brief; expand on every point to ensure the paper is substantial.
     """
 
     try:
-        completion = client.chat.completions.create(
+        completion = await client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
-            max_tokens=4096,
+            max_tokens=6000,
         )
         response_text = completion.choices[0].message.content
         return parse_sections(response_text)

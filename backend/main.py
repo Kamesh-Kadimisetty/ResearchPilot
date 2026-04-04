@@ -65,7 +65,7 @@ async def generate_paper(
     clean_code = clean_input(code or "")
 
     # Generate the research sections
-    sections = generate_sections(
+    sections = await generate_sections(
         title=clean_title,
         method=clean_method,
         results=clean_results,
@@ -125,7 +125,7 @@ async def generate_pdf(
     clean_code = clean_input(code or "")
 
     # Generate the research sections
-    sections = generate_sections(
+    sections = await generate_sections(
         title=clean_title,
         method=clean_method,
         results=clean_results,
