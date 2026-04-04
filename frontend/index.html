@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResearchPilot | AI Paper Generator</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <div class="container">
+        <header>
+            <div class="logo">Research<span>Pilot</span></div>
+            <p class="subtitle">Automated Academic Research Paper Generator</p>
+        </header>
+
+        <main>
+            <section id="input-section" class="card">
+                <h2>Research Inputs</h2>
+                <form id="paper-form">
+                    <div class="form-group">
+                        <label for="title">Paper Title</label>
+                        <input type="text" id="title" name="title" placeholder="e.g., The Impact of Quantum Computing on Cryptography" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="author">Author Name</label>
+                            <input type="text" id="author" name="author" placeholder="Optional">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="method">Methodology</label>
+                        <textarea id="method" name="method" rows="5" placeholder="Describe your research methods, logic, and techniques..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="results">Key Results</label>
+                        <textarea id="results" name="results" rows="5" placeholder="Summarize your data and findings..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="code">Optional Code/Snippet</label>
+                        <textarea id="code" name="code" rows="3" placeholder="Paste your core algorithm or GitHub repository link..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="file" class="file-label">
+                            <span class="icon">📁</span> Upload PDF/PPT (Background Data)
+                        </label>
+                        <input type="file" id="file" name="file" accept=".pdf,.pptx,.ppt">
+                    </div>
+
+                    <button type="submit" id="generate-btn">
+                        <span class="btn-text">Generate Paper</span>
+                        <div class="loader" id="loader"></div>
+                    </button>
+                </form>
+            </section>
+
+            <section id="output-section" class="card hidden">
+                <div class="output-header">
+                    <h2>Generated LaTeX</h2>
+                    <button id="preview-pdf-btn">Preview PDF</button>
+                    <button id="copy-btn">Copy LaTeX</button>
+                    <button id="download-btn">Download .tex</button>
+                </div>
+                <div id="pdf-loader" class="hidden">
+                    <div class="loader"></div>
+                    <p>Compiling LaTeX to PDF...</p>
+                </div>
+                <div id="pdf-preview-container" class="hidden">
+                    <iframe id="pdf-viewer" width="100%" height="600px"></iframe>
+                </div>
+                <div class="latex-container">
+                    <pre id="latex-output"></pre>
+                </div>
+                <div class="sections-preview">
+                    <h3>Preview Sections</h3>
+                    <div id="sections-content"></div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 ResearchPilot. Built with Groq & FastAPI.</p>
+        </footer>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
