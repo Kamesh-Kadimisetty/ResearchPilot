@@ -18,13 +18,21 @@ def compile_latex_to_pdf(latex_code: str) -> bytes:
             f.write(latex_code)
 
         try:
-            # Tectonic handles multiple passes and package downloads automatically
-            process = subprocess.run(
-                ["tectonic", "-o", tmpdir, tex_path],
+            # First pass
+            subprocess.run(
+                ["pdflatex", "-interaction=nonstopmode", "-output-directory", tmpdir, tex_path],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                timeout=300 # Tectonic may need lots of time to download packages on first run
+                timeout=60
+            )
+            # Second pass (resolves cross-references)
+            process = subprocess.run(
+                ["pdflatex", "-interaction=nonstopmode", "-output-directory", tmpdir, tex_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=60
             )
             
             if os.path.exists(pdf_path):
@@ -32,9 +40,12 @@ def compile_latex_to_pdf(latex_code: str) -> bytes:
                     return f.read()
             else:
                 error_msg = process.stdout + "\n" + process.stderr
-                raise Exception(f"PDF generation failed with Tectonic. Log:\n{error_msg}")
+                # Limiting the error output to avoid blowing up the UI
+                raise Exception(f"PDF generation failed. Check your LaTeX code. Log snippet:\n{error_msg[-1000:]}")
 
+        except FileNotFoundError:
+            raise Exception("pdflatex is not installed. Please add 'texlive-latex-base', 'texlive-fonts-recommended', 'texlive-latex-extra' to packages.txt.")
         except subprocess.TimeoutExpired:
-            raise Exception("Tectonic compilation timed out (possible slow network for package downloads).")
+            raise Exception("pdflatex compilation timed out.")
         except Exception as e:
-            raise Exception(f"Tectonic Error: {str(e)}")
+            raise Exception(f"pdflatex Error: {str(e)}")

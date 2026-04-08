@@ -103,7 +103,32 @@ if 'sections' in st.session_state and 'latex_code' in st.session_state:
             
     with tab2:
         st.code(st.session_state['latex_code'], language='latex')
-        st.download_button("Download .tex", data=st.session_state['latex_code'], file_name="research_paper.tex", mime="text/plain")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.download_button("Download .tex", data=st.session_state['latex_code'], file_name="research_paper.tex", mime="text/plain", use_container_width=True)
+            
+        with col2:
+            import html
+            safe_latex = html.escape(st.session_state['latex_code'])
+            overleaf_form = f'''
+            <form action="https://www.overleaf.com/docs" method="post" target="_blank">
+                <textarea name="snip" style="display:none;">{safe_latex}</textarea>
+                <button type="submit" style="
+                    width: 100%;
+                    background-color: #279B61;
+                    color: white;
+                    border: none;
+                    padding: 0.35rem 1rem;
+                    border-radius: 0.45rem;
+                    cursor: pointer;
+                    font-size: 1rem;
+                    font-weight: 400;
+                    line-height: 1.6;
+                    text-align: center;
+                ">Open in Overleaf</button>
+            </form>'''
+            st.markdown(overleaf_form, unsafe_allow_html=True)
         
     with tab3:
         for key, value in st.session_state['sections'].items():
