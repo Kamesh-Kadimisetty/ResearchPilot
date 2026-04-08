@@ -42,9 +42,9 @@ def log_analytics(title, author, num_files):
         # Silently fail so user generation is not interrupted, but print to console
         print(f"Analytics logging error: {e}")
 
-mode = st.sidebar.radio("Navigation", ["Generator", "Analytics Dashboard"])
+is_admin = st.query_params.get("admin") == "true"
 
-if mode == "Analytics Dashboard":
+if is_admin:
     st.header("📊 App Analytics Dashboard")
     st.markdown("Real-time usage analytics logging to Google Sheets.")
     st.divider()
