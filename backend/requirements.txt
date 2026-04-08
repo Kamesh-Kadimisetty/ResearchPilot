@@ -7,3 +7,5 @@ python-pptx
 python-dotenv
 requests
 streamlit
+st-gsheets-connection
+pandas
