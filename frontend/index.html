@@ -65,13 +65,17 @@
                     <button id="preview-pdf-btn">Preview PDF</button>
                     <button id="copy-btn">Copy LaTeX</button>
                     <button id="download-btn">Download .tex</button>
+                    <form action="https://www.overleaf.com/docs" method="post" target="_blank" style="display: inline-block; margin-left: 10px;">
+                        <textarea name="snip" id="overleaf-snip" style="display:none;"></textarea>
+                        <button type="submit" id="overleaf-btn" style="background-color: #279B61; color: white; border-color: #279B61;">Edit in overleaf</button>
+                    </form>
                 </div>
                 <div id="pdf-loader" class="hidden">
                     <div class="loader"></div>
                     <p>Compiling LaTeX to PDF...</p>
                 </div>
                 <div id="pdf-preview-container" class="hidden">
-                    <iframe id="pdf-viewer" width="100%" height="600px"></iframe>
+                    <embed id="pdf-viewer" width="100%" height="600px" type="application/pdf" />
                 </div>
                 <div class="latex-container">
                     <pre id="latex-output"></pre>

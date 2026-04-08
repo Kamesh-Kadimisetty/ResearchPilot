@@ -97,7 +97,7 @@ if 'sections' in st.session_state and 'latex_code' in st.session_state:
         
         if 'pdf_bytes' in st.session_state:
             b64_pdf = base64.b64encode(st.session_state['pdf_bytes']).decode('utf-8')
-            pdf_display = f'<iframe src="data:application/pdf;base64,{b64_pdf}" width="100%" height="800px" type="application/pdf"></iframe>'
+            pdf_display = f'<embed src="data:application/pdf;base64,{b64_pdf}" width="100%" height="800px" type="application/pdf" />'
             st.markdown(pdf_display, unsafe_allow_html=True)
             st.download_button("Download PDF", data=st.session_state['pdf_bytes'], file_name="research_paper.pdf", mime="application/pdf")
             
@@ -126,7 +126,7 @@ if 'sections' in st.session_state and 'latex_code' in st.session_state:
                     font-weight: 400;
                     line-height: 1.6;
                     text-align: center;
-                ">Open in Overleaf</button>
+                ">Edit in overleaf</button>
             </form>'''
             st.markdown(overleaf_form, unsafe_allow_html=True)
         

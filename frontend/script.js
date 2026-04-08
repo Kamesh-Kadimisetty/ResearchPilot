@@ -55,6 +55,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Display LaTeX
             latexOutput.textContent = data.latex;
+            
+            // Populate Overleaf Form
+            const overleafSnip = document.getElementById("overleaf-snip");
+            if (overleafSnip) {
+                overleafSnip.value = data.latex;
+            }
 
             // Display Sections Preview
             sectionsContent.innerHTML = "";
