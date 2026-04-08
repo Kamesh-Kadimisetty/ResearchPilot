@@ -9,3 +9,4 @@ requests
 streamlit
 st-gsheets-connection
 pandas
+pymupdf

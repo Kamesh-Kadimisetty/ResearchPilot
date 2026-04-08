@@ -162,31 +162,40 @@ else:
         
         tab1, tab2, tab3 = st.tabs(["PDF Preview", "LaTeX Source", "Section Preview"])
         
+        import json
+        import streamlit.components.v1 as components
+        safe_latex_json = json.dumps(st.session_state['latex_code'])
+        overleaf_html = f"""
+        <html>
+        <body style="margin: 0; padding: 0; font-family: sans-serif;">
+            <form action="https://www.overleaf.com/docs" method="post" target="_blank" style="margin:0;">
+                <input type="hidden" name="snip" id="snip_input">
+                <button type="submit" style="
+                    width: 100%;
+                    background-color: #279B61;
+                    color: white;
+                    border: none;
+                    padding: 0.5rem 1rem;
+                    border-radius: 0.45rem;
+                    cursor: pointer;
+                    font-size: 1rem;
+                    font-weight: 500;
+                    margin-bottom: 0px;
+                ">Edit in overleaf</button>
+            </form>
+            <script>
+                document.getElementById('snip_input').value = {safe_latex_json};
+            </script>
+        </body>
+        </html>
+        """
+        
         with tab1:
             col_a, col_b = st.columns(2)
             with col_a:
-                compile_clicked = st.button("Compile & Preview PDF", use_container_width=True)
+                components.html(overleaf_html, height=45)
             with col_b:
-                import html
-                safe_latex = html.escape(st.session_state['latex_code'])
-                overleaf_form_tab1 = f'''
-                <form action="https://www.overleaf.com/docs" method="post" target="_blank">
-                    <textarea name="snip" style="display:none;">{safe_latex}</textarea>
-                    <button type="submit" style="
-                        width: 100%;
-                        background-color: #279B61;
-                        color: white;
-                        border: none;
-                        padding: 0.35rem 1rem;
-                        border-radius: 0.45rem;
-                        cursor: pointer;
-                        font-size: 1rem;
-                        font-weight: 400;
-                        line-height: 1.6;
-                        text-align: center;
-                    ">Edit in overleaf</button>
-                </form>'''
-                st.markdown(overleaf_form_tab1, unsafe_allow_html=True)
+                compile_clicked = st.button("Compile & Preview PDF", use_container_width=True)
 
             if compile_clicked:
                 with st.spinner("Compiling LaTeX to PDF... (If this fails, please click Edit in Overleaf instead)"):
@@ -197,10 +206,16 @@ else:
                         st.error(f"PDF Compilation Error: {e} \n\nStreamlit Cloud may not have enough memory to run pdflatex. Click 'Edit in overleaf' to see the PDF!")
             
             if 'pdf_bytes' in st.session_state:
-                b64_pdf = base64.b64encode(st.session_state['pdf_bytes']).decode('utf-8')
-                pdf_display = f'<object data="data:application/pdf;base64,{b64_pdf}" type="application/pdf" width="100%" height="800px"><iframe src="data:application/pdf;base64,{b64_pdf}" width="100%" height="800px">This browser does not support PDFs. Please download the PDF to view it.</iframe></object>'
-                st.markdown(pdf_display, unsafe_allow_html=True)
-                st.download_button("Download PDF", data=st.session_state['pdf_bytes'], file_name="research_paper.pdf", mime="application/pdf")
+                st.download_button("Download PDF", data=st.session_state['pdf_bytes'], file_name="research_paper.pdf", mime="application/pdf", use_container_width=True)
+                try:
+                    import fitz
+                    st.info("Rendering PDF locally to bypass browser restrictions...")
+                    doc = fitz.open(stream=st.session_state['pdf_bytes'], filetype="pdf")
+                    for page in doc:
+                        pix = page.get_pixmap(dpi=150)
+                        st.image(pix.tobytes("png"), use_container_width=True)
+                except Exception as e:
+                    st.error(f"Failed to render PDF images: {e}")
                 
         with tab2:
             st.code(st.session_state['latex_code'], language='latex')
@@ -210,26 +225,7 @@ else:
                 st.download_button("Download .tex", data=st.session_state['latex_code'], file_name="research_paper.tex", mime="text/plain", use_container_width=True)
                 
             with col2:
-                import html
-                safe_latex = html.escape(st.session_state['latex_code'])
-                overleaf_form = f'''
-                <form action="https://www.overleaf.com/docs" method="post" target="_blank">
-                    <textarea name="snip" style="display:none;">{safe_latex}</textarea>
-                    <button type="submit" style="
-                        width: 100%;
-                        background-color: #279B61;
-                        color: white;
-                        border: none;
-                        padding: 0.35rem 1rem;
-                        border-radius: 0.45rem;
-                        cursor: pointer;
-                        font-size: 1rem;
-                        font-weight: 400;
-                        line-height: 1.6;
-                        text-align: center;
-                    ">Edit in overleaf</button>
-                </form>'''
-                st.markdown(overleaf_form, unsafe_allow_html=True)
+                components.html(overleaf_html, height=45)
             
         with tab3:
             for key, value in st.session_state['sections'].items():
